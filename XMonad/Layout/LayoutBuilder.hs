@@ -291,10 +291,7 @@ instance ( LayoutClass l1 a, LayoutClass l2 a
     -- |  Propagate messages.
     handleMessage l m
         | Just (IncLayoutN n) <- fromMessage m = incLayoutN l m n
-        | Just (IncMasterN _) <- fromMessage m = sendFocus  l m
-        | Just Shrink         <- fromMessage m = sendFocus  l m
-        | Just Expand         <- fromMessage m = sendFocus  l m
-        | otherwise                            = sendBoth   l m
+        | otherwise                            = sendFocus  l m
 
     -- | Descriptive name for layout.
     description layout = case layout of
@@ -336,16 +333,6 @@ sendSub (LayoutB subFocus nextFocus num box mbox sub next) m =
     do sub' <- handleMessage sub m
        return $ if isJust sub'
                 then Just $ LayoutB subFocus nextFocus num box mbox (fromMaybe sub sub') next
-                else Nothing
-
---------------------------------------------------------------------------------
-sendBoth :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutB l1 l2 p a -> SomeMessage -> X (Maybe (LayoutB l1 l2 p a))
-sendBoth l@(LayoutB _ _ _ _ _ _ Nothing) m = sendSub l m
-sendBoth (LayoutB subFocus nextFocus num box mbox sub (Just next)) m =
-    do sub' <- handleMessage sub m
-       next' <- handleMessage next m
-       return $ if isJust sub' || isJust next'
-                then Just $ LayoutB subFocus nextFocus num box mbox (fromMaybe sub sub') (next' <|> Just next)
                 else Nothing
 
 --------------------------------------------------------------------------------
